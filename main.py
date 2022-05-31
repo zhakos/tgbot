@@ -2,8 +2,12 @@ from cgitb import text
 import logging
 from operator import contains
 from re import IGNORECASE
+from tracemalloc import stop
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher.filters import Text
+import sqlite3
+conn = sqlite3.connect('databases/subjects.db')
+cur = conn.cursor()
 
 # Объект бота
 bot = Bot(token="5332706447:AAH-GxB4NtiKUnW-6vKOBWVwfzBqhnPhctU")
@@ -14,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 # ////////////////////////Physic/////////////////////
-@dp.message_handler(lambda message: 'физ' in message.text.lower())
+@dp.message_handler(lambda message: 'физ' in message.text.lower() and '-' not in message.text.lower())
 async def cmd_phys(message: types.Message):
     buttons = [
         types.InlineKeyboardButton(text="Физика-Математика", callback_data='Физика-Математика'),
@@ -26,7 +30,7 @@ async def cmd_phys(message: types.Message):
 
 
 # ////////////////////////Math/////////////////////
-@dp.message_handler(lambda message: 'мат' in message.text.lower())
+@dp.message_handler(lambda message: 'мат' in message.text.lower() and '-' not in message.text.lower())
 async def cmd_math(message: types.Message):
     buttons = [
         types.InlineKeyboardButton(text="Физика-Математика", callback_data='Физика-Математика'),
@@ -124,7 +128,25 @@ async def cmd_back(message: types.Message):
     await message.answer("Здравствуйте", reply_markup=keyboard)
 
 
+def request(message):
+    cur.execute(f"SELECT groups.nomer, groups.name, year_2020.grant, year_2020.jk, year_2020.ak FROM groups JOIN year_2020 ON groups.nomer = year_2020.group_nomer WHERE groups.subject = '{message}' ORDER BY groups.nomer ASC;")
+    data_groups = cur.fetchall()
+    cur.execute(f"SELECT spec.group_nomer, spec.name FROM spec JOIN groups ON groups.nomer = spec.group_nomer WHERE subject = '{message}' ORDER BY spec.group_nomer ASC;")
+    data_spec = cur.fetchall()
+    text = ''
+    for group in data_groups:
+        group = list(group)
+        text = text + f"<{group[1]}>\n"
+        for spec in data_spec:
+            spec = list(spec)
+            if spec[0] == group[0]:
+                text = text + "-" + spec[1] + "-\n"  #подумай
+        text = text + f"Бакалавриатқа бөлінген грант саны:{group[2]}\nЖалпы конкурс бойынша грантқа түскен минималды балл:{group[3]}\nАуылдық квотамен грантқа түскен минималды балл:{group[4]}\n\n"
+    return text    
 
+@dp.message_handler(text="Математика-Физика")
+async def math_fiz(message: types.message, call: types.callback_query):
+    await message.answer(request(message.text))
 
 if __name__ == "__main__":
     # Запуск бота
