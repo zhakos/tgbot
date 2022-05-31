@@ -87,6 +87,7 @@ async def cmd_hist(message: types.Message):
     keyboard.add(*buttons)
     await message.reply("Выбери", reply_markup=keyboard)
 
+#Добавь еще предметов а именно:English,CH.O.P,KAZlanguage,KAZliterature,RUSlanguage,RUSliterature,creativeexam
 
 # /////////////////Payment//////////////////
 @dp.message_handler(Text(contains="плата", ignore_case=True))
