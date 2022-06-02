@@ -8,9 +8,6 @@ from aiogram.dispatcher.filters import Text
 from os import getenv
 from sys import exit
 import db_request as db
-
-
-import asyncio
 import datetime
 
 # Объект бота
@@ -221,36 +218,38 @@ async def cmd_back(message: types.Message):
                          reply_markup=keyboard)
 
 
-@dp.callback_query_handler(lambda call: call.data in ["phys_math","phys_chem","math_geo","bio_geo","chem_bio","geo_hist","geo_eng",
+@dp.callback_query_handler(lambda call: call.data.split(' ')[0] in ["phys_math","phys_chem","math_geo","bio_geo","chem_bio","geo_hist","geo_eng",
 "hist_hsl","rulang_rulit","kzlang_kzlit"]) #Нету eng_hist
 @dp.message_handler(lambda message: message.text in ["Биология-География", "География-Всемирная История", "География-Английский",
                "Всемирная История-Человек.Общество.Право", "Казахский Язык-Казахская Литература", "Математика-Физика",
                "Математика-География", "Русский Язык-Русская Литература", "Химия-Биология",
                "Химия-Физика", "Английский Язык-Всемирная История", "Творческий экзамен"])
-async def subject_balls(subject, year = None):
+async def subject_balls(user_press): #subject : Если message то string, если callback то callback_data в англ версии ; year : int
+    keys = ['phys_math', 'phys_chem', 'math_geo', 'bio_geo', 'chem_bio', 'geo_hist', 'geo_eng', 'hist_hsl', 'rulang_rulit', 'kzlang_kzlit']
+    values = ['Математика-Физика', 'Химия-Физика', 'Математика-География', 'Биология-География', 'Химия-Биология', 'География-Всемирная История', 'География-Английский', 'Всемирная История-Человек.Общество.Право', 'Русский Язык-Русская Литература', 'Казахский Язык-Казахская Литература']
 
-    inline_subject = {'phys_math': "Математика-Физика",'phys_chem':"Химия-Физика",'math_geo': "Математика-География",'bio_geo': "Биология-География",
-    'chem_bio': "Химия-Биология",'geo_hist': "География-Всемирная История",'geo_eng': "География-Английский",'hist_hsl': "Всемирная История-Человек.Общество.Право",
-    'rulang_rulit': "Русский Язык-Русская Литература",'kzlang_kzlit': "Казахский Язык-Казахская Литература"}
+    match(str(type(user_press))):                                       #Проверяет callback или message
+        case "<class 'aiogram.types.message.Message'>":
+            subject_and_year = user_press.text.split(' ')
+            otvet = user_press.answer
+        case "<class 'aiogram.types.callback_query.CallbackQuery'>":
+            subject_and_year = user_press.data.split(' ')
+            subject_and_year[0] = values[keys.index(subject_and_year[0])]
+            otvet = user_press.message.answer
 
-    subject_str = subject.text if str(type(subject)) == "<class 'aiogram.types.message.Message'>" else inline_subject[subject.data]
-    if not year:
+    try: subject_and_year[1]                                            #Ставить этот год
+    except IndexError:
         now = datetime.datetime.now()
-        year = now.year - 1
-    data = db.subject_ball_from_bd(subject_str, year)
+        subject_and_year.insert(1, now.year - 1)
+
+    data = db.subject_ball_from_bd(subject_and_year[0], int(subject_and_year[1]))           #Запрос на бд
+
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     buttons = []
     for list_year in data[1]:
-        buttons.append(types.InlineKeyboardButton(text=f"{str(list_year[0])[5:]} год", callback_data=subject_str + ' ' + list_year[0]))
+        buttons.append(types.InlineKeyboardButton(text=f"{str(list_year[0])[5:]} год", callback_data= keys[values.index(subject_and_year[0])] + ' ' + str(list_year[0])[5:]))
     keyboard.add(*buttons)
-    await subject.answer(data[0],reply_markup=keyboard) if str(type(subject)) == "<class 'aiogram.types.message.Message'>" else await subject.message.answer(data[0],reply_markup=keyboard)
-
-'''@dp.callback_query_handler(Text(contains='year_'))
-async def year(call: types.CallbackQuery):
-    data = call.data.split(' ')
-    data[1] = int(str(data[1])[5:])
-    asyncio.get_running_loop().create_task(server_cb_async(request))'''
-
+    await otvet(data[0],reply_markup=keyboard)
 
 if __name__ == "__main__":
     # Запуск бота
