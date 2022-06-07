@@ -1,6 +1,5 @@
 import sqlite3
 
-<<<<<<< HEAD
 
 def college(idk, lang):
     conn = sqlite3.connect('databases/bachelor.db')
@@ -46,7 +45,7 @@ def insert_users(user_id, lang):
     conn = sqlite3.connect('databases/users.db')
     cur = conn.cursor()
 
-    print(user_id,lang)
+
     cur.execute(f"INSERT INTO user (user_id, lang) VALUES ({user_id},'{lang}')")
     conn.commit()
 
@@ -131,8 +130,6 @@ def price(subject, lang):
     conn.close()
     return text
 
-=======
->>>>>>> cd6c07a1ebc59d6be775c95af970b30c2f2da0e5
 def subject_ball_from_bd(subject, year, lang):
     conn = sqlite3.connect('databases/bachelor.db')
     cur = conn.cursor()
@@ -155,71 +152,4 @@ def subject_ball_from_bd(subject, year, lang):
                 text = text + "-" + spec[1] + "-\n"  # подумай
         text = text + f"Бакалавриатқа бөлінген грант саны:{group[2]}\nЖалпы конкурс бойынша грантқа түскен минималды балл:{group[3]}\nАуылдық квотамен грантқа түскен минималды балл:{group[4]}\n\n"
     conn.close()
-<<<<<<< HEAD
     return text, tables
-=======
-    return text, tables
-
-
-def discount_drom_bd(percent, lang):
-    conn = sqlite3.connect('databases/discount.db')
-    cur = conn.cursor()
-    cur.execute(f"SELECT data_{lang} FROM discount WHERE percent = '{percent}'")
-    datas = cur.fetchall()
-
-    match lang:
-        case "kz":
-            text = f"{percent} жеңілдік:\n"
-        case "ru":
-            text = f"{percent} скидка:\n"
-
-    for index, data in enumerate(datas):
-        text = text + f"{index + 1}){data[0]}\n\n"
-
-    conn.close()
-    return text
-
-def magistracy(idk, lang):
-    conn = sqlite3.connect('databases/magistracy.db')
-    cur = conn.cursor()
-
-    cur.execute(
-        f"SELECT groups.nomer, groups.name_{lang} FROM groups JOIN areas ON groups.area_nomer = areas.nomer JOIN idk ON areas.idk_nomer = idk.nomer WHERE idk.name_{lang} = '{idk}';")
-    data_groups = cur.fetchall()
-    cur.execute(
-        f"SELECT spec.group_nomer, spec.name_{lang} FROM spec JOIN groups ON spec.group_nomer = groups.nomer JOIN areas ON groups.area_nomer = areas.nomer JOIN idk ON areas.idk_nomer = idk.nomer WHERE idk.name_{lang} = '{idk}';")
-    data_spec = cur.fetchall()
-    text = ''
-    for group in data_groups:
-        group = list(group)
-        text = text + f"<{group[1]}>\n"
-        for spec in data_spec:
-            spec = list(spec)
-            if spec[0] == group[0]:
-                text = text + "-" + spec[1] + "-\n"  # подумай
-        text = text + '\n'
-    conn.close()
-    return text
-
-def doctoranture(idk, lang):
-    conn = sqlite3.connect('databases/doctoral.db')
-    cur = conn.cursor()
-
-    cur.execute(
-        f"SELECT groups.nomer, groups.name_{lang} FROM groups JOIN areas ON groups.area_nomer = areas.nomer JOIN idk ON areas.idk_nomer = idk.nomer WHERE idk.name_{lang} = '{idk}';")
-    data_groups = cur.fetchall()
-    cur.execute(
-        f"SELECT spec.group_nomer, spec.name_{lang} FROM spec JOIN groups ON spec.group_nomer = groups.nomer JOIN areas ON groups.area_nomer = areas.nomer JOIN idk ON areas.idk_nomer = idk.nomer WHERE idk.name_{lang} = '{idk}';")
-    data_spec = cur.fetchall()
-    text = ''
-    for group in data_groups:
-        group = list(group)
-        text = text + f"<{group[1]}>\n"
-        for spec in data_spec:
-            spec = list(spec)
-            if spec[0] == group[0]:
-                text = text + "-" + spec[1] + "-\n"  # подумай
-        text = text + '\n'
-    conn.close()
-    return text
->>>>>>> cd6c07a1ebc59d6be775c95af970b30c2f2da0e5
